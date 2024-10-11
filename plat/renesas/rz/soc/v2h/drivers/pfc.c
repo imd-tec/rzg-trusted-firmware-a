@@ -23,7 +23,7 @@ static PFC_REGS pfc_sd_reg_tbl[PFC_TBL_LEN] = {
 		{ PFC_OFF, (uintptr_t)NULL,       0 },						/* PFC */
 		{ PFC_ON,  (uintptr_t)PFC_IOLH09, 0x0000000000030303 },		/* IOLH */
 		{ PFC_ON,  (uintptr_t)PFC_PUPD09, 0x0000000000000000 },		/* PUPD */
-		{ PFC_ON,  (uintptr_t)PFC_SR09,   0x0000000000010101 },		/* SR */
+		{ PFC_ON,  (uintptr_t)PFC_SR09,   0x0000000000000000 },		/* SR */
 		{ PFC_ON,  (uintptr_t)PFC_IEN09,  0x0000000000000100 }		/* IEN */
 	},
 
@@ -33,7 +33,7 @@ static PFC_REGS pfc_sd_reg_tbl[PFC_TBL_LEN] = {
 		{ PFC_OFF, (uintptr_t)NULL,       0 },						/* PFC */
 		{ PFC_ON,  (uintptr_t)PFC_IOLH0A, 0x0303030303030303 },		/* IOLH */
 		{ PFC_ON,  (uintptr_t)PFC_PUPD0A, 0x0000000000000000 },		/* PUPD */
-		{ PFC_ON,  (uintptr_t)PFC_SR0A,   0x0101010101010101 },		/* SR */
+		{ PFC_ON,  (uintptr_t)PFC_SR0A,   0x0000000000000000 },		/* SR */
 		{ PFC_ON,  (uintptr_t)PFC_IEN0A,  0x0101010101010101 }		/* IEN */
 	},
 };
@@ -45,7 +45,7 @@ static PFC_REGS pfc_qspi_reg_tbl[PFC_TBL_LEN] = {
 		{ PFC_OFF, (uintptr_t)NULL,       0 },						/* PFC */
 		{ PFC_ON,  (uintptr_t)PFC_IOLH07, 0x0000000000030003 },		/* IOLH */
 		{ PFC_ON,  (uintptr_t)PFC_PUPD07, 0x0000000000000000 },		/* PUPD */
-		{ PFC_ON,  (uintptr_t)PFC_SR07,   0x0000000000010001 },		/* SR */
+		{ PFC_ON,  (uintptr_t)PFC_SR07,   0x0000000000000000 },		/* SR */
 		{ PFC_OFF, (uintptr_t)NULL,       0 }						/* IEN */
 	},
 
@@ -55,7 +55,7 @@ static PFC_REGS pfc_qspi_reg_tbl[PFC_TBL_LEN] = {
 		{ PFC_OFF, (uintptr_t)NULL,       0 },						/* PFC */
 		{ PFC_ON,  (uintptr_t)PFC_IOLH08, 0x0000000003030303 },		/* IOLH */
 		{ PFC_ON,  (uintptr_t)PFC_PUPD08, 0x0000000000000000 },		/* PUPD */
-		{ PFC_ON,  (uintptr_t)PFC_SR08,   0x0000000001010101 },		/* SR */
+		{ PFC_ON,  (uintptr_t)PFC_SR08,   0x0000000000000000 },		/* SR */
 		{ PFC_OFF, (uintptr_t)NULL,       0 }						/* IEN */
 	},
 };
@@ -68,7 +68,7 @@ static PFC_REGS pfc_scif_reg_tbl[PFC_TBL_LEN] = {
 		{ PFC_OFF, (uintptr_t)NULL,       0 },						/* PFC */
 		{ PFC_ON,  (uintptr_t)PFC_IOLH06, 0x0000000000000003 },		/* IOLH */
 		{ PFC_ON,  (uintptr_t)PFC_PUPD06, 0x0000000000000000 },		/* PUPD */
-		{ PFC_ON,  (uintptr_t)PFC_SR06,   0x0000000000000003 },		/* SR */
+		{ PFC_ON,  (uintptr_t)PFC_SR06,   0x0000000000000000 },		/* SR */
 		{ PFC_ON,  (uintptr_t)NULL,       0x0000000000000000 }		/* IEN */
 	},
 
@@ -184,12 +184,12 @@ static void pfc_drive_setup(void)
 			uint32_t index = ((sys_lsi_otppoc & pfc_io_drive[boot_mode].drive_mask) >> pfc_io_drive[boot_mode].drive_offset);
 
 			pfc_iolh_drive = pfc_iolh_drive_tbl[index];
-		}
 
-		for (cnt = 0; cnt < PFC_TBL_LEN; cnt++) {
-			if (p_pins_tbl[cnt].iolh.flg == PFC_ON) {
-				/* Write IOLH value from pfc_sd_reg_tbl[] masked with value in pin table */
-				mmio_write_64(p_pins_tbl[cnt].iolh.reg, (pfc_iolh_drive & p_pins_tbl[cnt].iolh.val));
+			for (cnt = 0; cnt < PFC_TBL_LEN; cnt++) {
+				if (p_pins_tbl[cnt].iolh.flg == PFC_ON) {
+					/* Write IOLH value from pfc_sd_reg_tbl[] masked with value in pin table */
+					mmio_write_64(p_pins_tbl[cnt].iolh.reg, (pfc_iolh_drive & p_pins_tbl[cnt].iolh.val));
+				}
 			}
 		}
 	}

@@ -44,7 +44,7 @@ int bl2_plat_handle_pre_image_load(unsigned int image_id)
 
 		params->boot_kind = bl2_plat_get_boot_mode();
 
-		/* If a warm start is in progress then skip rest of intialisation and jump directly to BL31 */
+		/* If a warm start is in progress then skip rest of initialisation and jump directly to BL31 */
 		if (params->boot_kind == RZ_WARM_BOOT) {
 			bl_mem_params_node_t *bl_mem_params = get_bl_mem_params_node(image_id);
 
@@ -87,7 +87,6 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 		break;
 	}
 
-	flush_dcache_range((uintptr_t)PARAMS_BASE, sizeof(bl2_to_bl31_params_mem_t));
 	return 0;
 }
 
@@ -148,6 +147,8 @@ void bl2_el3_plat_arch_setup(void)
 #if TRUSTED_BOARD_BOOT
 		MAP_REGION_FLAT(RZV2H_BOOT_ROM_BASE, RZV2H_BOOT_ROM_SIZE,
 				MT_MEMORY | MT_RO | MT_SECURE),
+		MAP_REGION_FLAT(RZV2H_BOOT_RAM_BASE, RZV2H_BOOT_RAM_SIZE,
+				MT_MEMORY | MT_RW | MT_SECURE),
 #endif
 		MAP_REGION_FLAT(RZV2H_DEVICE_BASE, RZV2H_DEVICE_SIZE,
 				MT_DEVICE | MT_RW | MT_SECURE),
