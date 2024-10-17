@@ -17,6 +17,10 @@ TRUSTED_BOARD_BOOT				:= 0
 PROTECTED_CHIPID				:= 1
 DEBUG_FPGA						:= 0
 PLAT_DDR_ECC					:= 0
+# This option gets enabled automatically if the TRUSTED_BOARD_BOOT
+# is set via root Makefile, but Renesas support Trusted-Boot without
+# Crypto module.
+override CRYPTO_SUPPORT			:= 0
 PLAT_SYSTEM_SUSPEND				:= 0
 RESET_TO_BL31					:= 1
 
@@ -59,7 +63,7 @@ BL_COMMON_SOURCES		+=	lib/cpus/aarch64/cortex_a55.S						\
 include lib/xlat_tables_v2/xlat_tables.mk
 PLAT_BL_COMMON_SOURCES		:=	${XLAT_TABLES_LIB_SRCS}							\
 							plat/renesas/rz/common/plat_rz_common.c				\
-							plat/renesas/rz/common/aarch64/plat_helpers.S		\
+							plat/renesas/rz/common/aarch64/plat_helpers_system_suspend.S		\
 							plat/renesas/rz/common/drivers/syc.c				\
 							plat/renesas/rz/common/drivers/scifa.S			\
 							${RZ_TIMER_SOURCES}
@@ -96,7 +100,6 @@ BL2_SOURCES				+=	common/desc_image_load.c							\
 							drivers/io/io_memmap.c								\
 							drivers/io/io_fip.c									\
 							plat/renesas/rz/common/plat_image_load.c			\
-							plat/renesas/rz/common/plat_storage.c				\
 							plat/renesas/rz/common/bl2_plat_mem_params_desc.c	\
 							${XSPI_SOURCES}										\
 							${EMMC_SOURCES}										\

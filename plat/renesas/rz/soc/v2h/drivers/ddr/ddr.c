@@ -32,7 +32,6 @@ static void phyinit_d2h_2d(void);
 static void phyinit_mc(void);
 static void phyinit_i(void);
 static void phyinit_j(void);
-static void prog_all0(uint64_t start_addr, uint32_t addr_space);
 static void save_retcsr(void);
 
 
@@ -81,8 +80,6 @@ static void ddr_init(uint64_t ddrbase)
 	phyinit_i();
 
 	phyinit_j();
-
-	prog_all0(ddrbase, 33);
 
 	update_mc();
 }
@@ -255,42 +252,6 @@ static void restore_retcsr(void)
 	dwc_ddrphy_apb_wr(0x0d0000, 1);
 }
 
-static void prog_all0(uint64_t start_addr, uint32_t addr_space)
-{
-#if PLAT_DDR_ECC
-	uint32_t bak_lp_auto_entry_en;
-
-	ddrtop_mc_param_wr(ECC_DISABLE_W_UC_ERR_ADDR, ECC_DISABLE_W_UC_ERR_OFFSET, ECC_DISABLE_W_UC_ERR_WIDTH, 1);
-
-	bak_lp_auto_entry_en = ddrtop_mc_param_rd(LP_AUTO_ENTRY_EN_ADDR, LP_AUTO_ENTRY_EN_OFFSET, LP_AUTO_ENTRY_EN_WIDTH);
-	ddrtop_mc_param_wr(LP_AUTO_ENTRY_EN_ADDR, LP_AUTO_ENTRY_EN_OFFSET, LP_AUTO_ENTRY_EN_WIDTH, 0x0);
-
-	ddrtop_mc_param_wr(BIST_START_ADDRESS_ADDR+0, 0, 32, (start_addr&0xffffffff));
-	ddrtop_mc_param_wr(BIST_START_ADDRESS_ADDR+1, 0, BIST_START_ADDRESS_WIDTH-32, ((start_addr>>32)&0x0ffffffff));
-	ddrtop_mc_param_wr(ADDR_SPACE_ADDR, ADDR_SPACE_OFFSET, ADDR_SPACE_WIDTH, addr_space);
-	ddrtop_mc_param_wr(BIST_DATA_CHECK_ADDR, BIST_DATA_CHECK_OFFSET, BIST_DATA_CHECK_WIDTH, 1);
-	ddrtop_mc_param_wr(BIST_TEST_MODE_ADDR, BIST_TEST_MODE_OFFSET, BIST_TEST_MODE_WIDTH, 0b100);
-	ddrtop_mc_param_wr(BIST_DATA_PATTERN_ADDR+0, 0, 32, 0x00000000);
-	ddrtop_mc_param_wr(BIST_DATA_PATTERN_ADDR+1, 0, 32, 0x00000000);
-	ddrtop_mc_param_wr(BIST_DATA_PATTERN_ADDR+2, 0, 32, 0x00000000);
-	ddrtop_mc_param_wr(BIST_DATA_PATTERN_ADDR+3, 0, 32, 0x00000000);
-
-	udelay(1);
-
-	ddrtop_mc_param_wr(BIST_GO_ADDR, BIST_GO_OFFSET, BIST_GO_WIDTH, 1);
-	ddrtop_mc_param_poll(INT_STATUS_BIST_ADDR, INT_STATUS_BIST_OFFSET+0, 1, 1);
-	ddrtop_mc_param_wr(BIST_GO_ADDR, BIST_GO_OFFSET, BIST_GO_WIDTH, 0);
-	ddrtop_mc_param_wr(INT_ACK_BIST_ADDR, INT_ACK_BIST_OFFSET+0, 1, 1);
-	ddrtop_mc_param_wr(INT_ACK_ECC_ADDR, INT_ACK_ECC_OFFSET, INT_ACK_ECC_WIDTH, 0x000001CF);
-	ddrtop_mc_param_poll(INT_STATUS_BIST_ADDR, INT_STATUS_BIST_OFFSET+0, 1, 0);
-	ddrtop_mc_param_poll(INT_STATUS_ECC_ADDR, INT_STATUS_ECC_OFFSET, INT_STATUS_ECC_WIDTH, 0);
-	ddrtop_mc_param_wr(LP_AUTO_ENTRY_EN_ADDR, LP_AUTO_ENTRY_EN_OFFSET, LP_AUTO_ENTRY_EN_WIDTH, bak_lp_auto_entry_en);
-	ddrtop_mc_param_wr(ECC_DISABLE_W_UC_ERR_ADDR, ECC_DISABLE_W_UC_ERR_OFFSET, ECC_DISABLE_W_UC_ERR_WIDTH, 0);
-
-	udelay(1);
-#endif
-}
-
 static void soft_delay(uint64_t usec)
 {
 	/* RZ/V2H: CPU Clock = 1.7G Hz*/
@@ -342,56 +303,41 @@ static void ddr_retention_enter(uint8_t base)
 	if (!base) {
 		set_ddrtop_mc_base_addr(RZV2H_DDR0_MEMC_BASE);
 		set_ddrphy_base_addr(RZV2H_DDR0_PHY_BASE);
-	} else if (base == 1) {
+	} else {
 		set_ddrtop_mc_base_addr(RZV2H_DDR1_MEMC_BASE);
 		set_ddrphy_base_addr(RZV2H_DDR1_PHY_BASE);
 	}
-	/* 1. */
 
-	/* 2. */
 	val = ddrtop_mc_param_rd(CS_MAP_ADDR, CS_MAP_OFFSET, CS_MAP_WIDTH);
 	num_rank = (val == 3) ? 2 : 1;
 
-	/* 3. */
-	dwc_ddrphy_apb_wr(0x020010, 0);
-
-	/* 4. */
 	ddrtop_mc_param_poll(CONTROLLER_BUSY_ADDR, CONTROLLER_BUSY_OFFSET, CONTROLLER_BUSY_WIDTH, 0);
 
-	/* 5. */
 	ddrtop_mc_param_wr(LP_AUTO_ENTRY_EN_ADDR, LP_AUTO_ENTRY_EN_OFFSET, LP_AUTO_ENTRY_EN_WIDTH, 0);
 	ddrtop_mc_param_wr(LPI_WAKEUP_EN_OFFSET, LPI_WAKEUP_EN_OFFSET, LPI_WAKEUP_EN_WIDTH, 0);
 
-	/* 6. */
 	ddrtop_mc_param_wr(LP_CMD_ADDR, LP_CMD_OFFSET, LP_CMD_WIDTH, 0b1010001);
 	ddrtop_mc_param_poll(LP_STATE_CS0_ADDR, LP_STATE_CS0_OFFSET, LP_STATE_CS0_WIDTH, 0b1001111);
 	if (num_rank > 1) {
 		ddrtop_mc_param_poll(LP_STATE_CS1_ADDR, LP_STATE_CS1_OFFSET, LP_STATE_CS1_WIDTH, 0b1001111);
 	}
 
-	/* 7. */
 	if (!base) {
 		ddrtop_mc_param_wr(DFIBUS_FREQ_F0_ADDR, DFIBUS_FREQ_F0_OFFSET, DFIBUS_FREQ_F0_WIDTH, 0x1F);
 	} else {
 		ddrtop_mc_param_wr(DFIBUS_FREQ_F0_ADDR, DFIBUS_FREQ_F1_OFFSET, DFIBUS_FREQ_F1_WIDTH, 0x1F);
 	}
 
-	/* 8. */
 	ddrtop_mc_param_wr(MCAR_CTL, 16, 1, 1);
 
-	/* 9. */
 	dwc_ddrphy_apb_poll(0x0D00FA, 0, 1);
 
-	/* 10. */
 	ddrtop_mc_param_wr(MCAR_CTL, 16, 1, 0);
 
-	/* 11. */
 	dwc_ddrphy_apb_poll(0x0D00FA, 1, 1);
 
-	/* 12. */
 	cpg_ddr_pwrokin_off(base);
 
-	/* 13. */
 	wait_dficlk(18);
 }
 
@@ -406,48 +352,31 @@ void ddr_retention_exit(uint8_t base)
 	if (!base) {
 		set_ddrtop_mc_base_addr(RZV2H_DDR0_MEMC_BASE);
 		set_ddrphy_base_addr(RZV2H_DDR0_PHY_BASE);
-		/* 1. */
 
-		/* 2. to 8. */
 		cpg_ddr0_part1();
 
-		/* 9. */
 		setup_mc();
 
-		/* 10. */
-
-		/* 11. to 14*/
 		cpg_ddr0_part2();
 
-	} else if (base == 1) {
+	} else {
 		set_ddrtop_mc_base_addr(RZV2H_DDR1_MEMC_BASE);
 		set_ddrphy_base_addr(RZV2H_DDR1_PHY_BASE);
-		/* 1. */
 
-		/* 2. to 8. */
 		cpg_ddr1_part1();
 
-		/* 9. */
 		setup_mc();
 
-		/* 10. */
-
-		/* 11. to 14*/
 		cpg_ddr1_part2();
 	}
 
-	/* 15. */
 	phyinit_c();
 
-	/* 16. */
 	restore_retcsr();
 
-	/* 17. */
 	phyinit_i();
 
-	/* 18. */
 	phyinit_j();
 
-	/* 19. */
 	update_mc();
 }

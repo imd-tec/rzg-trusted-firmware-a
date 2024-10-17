@@ -62,7 +62,7 @@ int save_ddr_config(unsigned int image_id, image_info_t *image_data)
 		return io_result;
 	}
 
-	INFO("Saving DDR retantion info.\n");
+	INFO("Saving DDR retention info.\n");
 
 	io_result = io_size(image_handle, &image_size);
 	if ((io_result != 0) || (image_size == 0U)) {

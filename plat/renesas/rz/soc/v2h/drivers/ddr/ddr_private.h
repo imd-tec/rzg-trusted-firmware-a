@@ -11,8 +11,8 @@
 
 #include "ddr_regs.h"
 
-#define DDR4_VERSION	"1.04"
-#define LPDDR4_VERSION	"1.04"
+#define DDR4_VERSION	"1.03"
+#define LPDDR4_VERSION	"1.03"
 
 #if !LPDDR4
 #define DDR_VERSION		DDR4_VERSION
@@ -51,12 +51,10 @@ extern void ddrtop_mc_param_poll(uint32_t addr, uint32_t offset, uint32_t width,
 
 extern void ddrtop_mc_apb_rmw(uint32_t addr, uint32_t data, uint32_t mask);
 
-extern void ddrtop_proc_error(void);
-
 extern uint32_t get_mail(uint8_t mode_32bits);
 extern void dwc_ddrphy_phyinit_userCustom_G_waitDone(uint8_t sel_train);
 
-/* DDR setup MC funcion */
+/* DDR setup MC function */
 extern void setup_mc(void);
 extern void update_mc(void);
 

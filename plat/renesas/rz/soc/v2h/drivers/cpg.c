@@ -184,7 +184,7 @@ static CPG_PLL_SETTINGS cpg_pll_tbl[] = {
 	{	/* DSI */
 		.stby = {
 				.addr = (uintptr_t)CPG_PLLDSI_STBY,
-				.val  = 0x00050005,
+				.val  = 0x00010001,
 				},
 
 		.clk1 = {
@@ -209,7 +209,7 @@ static CPG_PLL_SETTINGS cpg_pll_tbl[] = {
 	{	/* GPU */
 		.stby = {
 				.addr = (uintptr_t)CPG_PLLGPU_STBY,
-				.val  = 0x00010001,
+				.val  = 0x00050001,
 				},
 
 		.clk1 = {
@@ -1979,6 +1979,10 @@ static void cpg_wdtrst_sel_setup(void)
 					| CPG_ERRORRST_SELx_ERRRSTSEL3;
 	uint32_t ca33_w01, ca33_w23, ca55_w01, ca55_w23;
 
+	/* Clear bit 28 interrupt source for both M33 and CA55 */
+	mmio_write_32(RZV2H_ELC_ERINTM33CLR(0), 0x10000000);
+	mmio_write_32(RZV2H_ELC_ERINTA55CLR(0), 0x10000000);
+
 	ca33_w01 = mmio_read_32(RZV2H_ELC_ERINTM33CTL(0));
 	ca33_w23 = mmio_read_32(RZV2H_ELC_ERINTM33CTL(1));
 	ca55_w01 = mmio_read_32(RZV2H_ELC_ERINTA55CTL(0));
@@ -2007,32 +2011,25 @@ static void cpg_wdtrst_sel_setup(void)
 
 void cpg_ddr0_part1(void)
 {
-	/* 2. */
 	mmio_write_32(CPG_RST_11, 0x0FF80000);
 
 	mmio_write_32(CPG_LP_DDR_CTL1, mmio_read_32(CPG_LP_DDR_CTL1) & ~0x00000001);
 
-	/* 3. */
 	mmio_write_32(CPG_PLLDDR0_STBY, 0x00010001);	/* PLLDDR0 clock start */
 	while ((mmio_read_32(CPG_PLLDDR0_MON) & 0x00000011) != 0x00000011)
 		;
 
 	mmio_write_32(CPG_CLKON_12, 0x0FC00FC0);
 
-	/* 4. */
 	udelay(1);
 
-	/* 5. */
 	mmio_write_32(CPG_RST_11, 0x00080008);
 	mmio_write_32(CPG_LP_DDR_CTL1, mmio_read_32(CPG_LP_DDR_CTL1) | 0x00000001);
 
-	/* 6. */
 	udelay(1);
 
-	/* 7. */
 	mmio_write_32(CPG_RST_11, 0x03F003F0);
 
-	/* 8. */
 	udelay(1);
 }
 
@@ -2102,9 +2099,9 @@ void cpg_setup(void)
 {
 	cpg_div_sel_static_setup();
 	cpg_pll_setup();
-	cpg_mstop_setup();
 	cpg_clk_on_setup();
 	cpg_reset_setup();
+	cpg_mstop_setup();
 	cpg_div_sel_dynamic_setup();
 	cpg_wdtrst_sel_setup();
 }
