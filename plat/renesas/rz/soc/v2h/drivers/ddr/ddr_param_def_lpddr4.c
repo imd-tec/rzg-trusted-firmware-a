@@ -35416,10 +35416,10 @@ const uint32_t param_setup_mc[][2] = {
 	{0x017b, 0x0b080e00},
 	{0x017c, 0x00000008},
 	{0x017d, 0x02030306},
-	{0x017e, 0x00000101},
-	{0x017f, 0x00000404},
-	{0x0180, 0x00000404},
-	{0x0181, 0x00000404},
+	{0x017e, 0x01000101}, // IMDT (Changes to prioritize the CRU and Display over DRP) - Enable priority control for Port 0
+	{0x017f, 0x01000404}, // Enable priority control for Port 1 and port 0 priority=Highest
+	{0x0180, 0x01000404}, // Enable priority control for Port 2 and port 1 priority=Highest
+	{0x0181, 0x00000707}, // Port 2 priority=Lowest
 	{0x0182, 0x00000404},
 	{0x0183, 0x00000404},
 	{0x0184, 0x00000000},
