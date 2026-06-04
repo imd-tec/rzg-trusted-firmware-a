@@ -31,6 +31,9 @@ void rz_io_setup(void);
 /* plat_ddr_setup.c  */
 void plat_ddr_setup(void);
 
+/* pmic_regs.c */
+void plat_pmic_setup(void);
+
 /* bl31_plat_setup.c */
 void plat_copy_code_to_system_ram(void);
 

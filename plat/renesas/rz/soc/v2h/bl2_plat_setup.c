@@ -169,7 +169,8 @@ void bl2_platform_setup(void)
 	plat_security_setup();
 
 	rz_io_setup();
-
+	/* Program PMIC registers to lower voltages */
+	plat_pmic_setup();
 	/* initialize DDR */
 	plat_ddr_setup();
 }
